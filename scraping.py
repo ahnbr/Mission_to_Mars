@@ -4,11 +4,10 @@ from bs4 import BeautifulSoup as soup
 import pandas as pd
 import datetime as dt
 
+# Initiate headless driver for deployment
+browser = Browser("chrome", executable_path="chromedriver", headless=True)
 
 def scrape_all():
-    # Initiate headless driver for deployment
-    browser = Browser("chrome", executable_path="chromedriver", headless=True)
-
     news_title, news_paragraph = mars_news(browser)
 
     # Run all scraping functions and store results in a dictionary
@@ -52,6 +51,41 @@ def mars_news(browser):
 
     return news_title, news_p
 
+def mars_hemispheres():
+    # 1. Use browser to visit the URL 
+    url = 'https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars'
+    browser.visit(url)
+
+    # 2. Create a list to hold the images and titles.
+    hemisphere_image_urls = []
+
+    # 3. Write code to retrieve the image urls and titles for each hemisphere
+    # Get a List of All the Hemispheres
+
+    links = browser.find_by_css("a.product-item h3")
+
+    for item in range(len(links)):
+        hemispheres = {}
+        
+        # Find Element on Each Loop to Avoid a Stale Element Exception
+        browser.find_by_css("a.product-item h3")[item].click()
+        
+        # Find Sample Image Anchor Tag & Extract <href>
+        sample_element = browser.find_link_by_text("Sample").first
+        hemispheres["img_url"] = sample_element["href"]
+        
+        # Get Hemisphere Title
+        hemispheres["title"] = browser.find_by_css("h2.title").text
+        
+        # Append Hemisphere Object to List
+        hemisphere_image_urls.append(hemispheres)
+        
+        # Navigate Backwards
+        browser.back()
+        
+    # return the scraped data as a list of dictionaries 
+    # with the URL string and title of each hemisphere image
+    return hemisphere_image_urls
 
 def featured_image(browser):
     # Visit URL
